@@ -20,7 +20,6 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     [SerializeField] private GameObject labirentTeleporter;
     [SerializeField] private int labirentOrder;
     [Header("Labirent Buyukluk")]
-    [SerializeField] private Vector2Int labirentBuyukluk;
     [Header("X=Oda kenar-Y=Labirent kenar")]
     [SerializeField] private Vector2Int kenarLimitler = new Vector2Int(2, 3);
     [Header("Room size")]
@@ -28,7 +27,7 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     [SerializeField] private Vector2Int savasRoom = new Vector2Int(3, 3);
     [SerializeField] private Vector2Int bossRoom = new Vector2Int(4, 4);
     [Header("Kurulacak Kat. Içinde X=Kurulacak oda amount, Y=Kurulan oda amount")]
-    [SerializeField] private LabirentKatRooms kat;
+    [SerializeField] private LabirentKatPart kat;
     [Header("X=Kurulum time limit-Y=Kurulum time limit next")]
     [SerializeField] private Vector2 kurulumTime = new Vector2(2, 3);
     private List<Vector2Int> savasOdalar = new List<Vector2Int>();
@@ -36,35 +35,35 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     private List<Vector3Int> gidilenYollar = new List<Vector3Int>();
     private Vector3Int currentCellKoor;
     private Vector3Int newKoor;
-    public void LabirentKurulumBasla(Labirent_Manager manager, Vector2Int buyukluk, LabirentKatRooms kat)
+    public void LabirentKurulumBasla(Labirent_Manager manager, LabirentKatPart kat, int labirentOrder)
     {
         labirentManager = manager;
-        labirentBuyukluk = buyukluk;
-        this.kat = kat;
-        currentCellKoor = new Vector3Int(-labirentBuyukluk.x * 20, 0, -labirentBuyukluk.y * 20);
+        this.kat = new LabirentKatPart(kat.labirentSize, kat.katRooms);
+        this.labirentOrder = labirentOrder;
+        currentCellKoor = new Vector3Int(-kat.labirentSize * 20, 0, -kat.labirentSize * 20);
         DuvarKur();
     }
     private void DuvarKur()
     {
-        int bossAlan = (kat.bossRooms.x + 4) * (kat.bossRooms.y + 4);
-        int savasAlan = (kat.savasRooms.x + 4) * (kat.savasRooms.y + 4);
-        int hazineAlan = (kat.hazineRooms.y + 4) * (kat.hazineRooms.y + 4);
-        if ((labirentBuyukluk.x - 3) * (labirentBuyukluk.y - 3) * 4 < bossAlan + savasAlan + hazineAlan)
+        int bossAlan = (kat.katRooms.bossRooms.x + 4) * (kat.katRooms.bossRooms.y + 4);
+        int savasAlan = (kat.katRooms.savasRooms.x + 4) * (kat.katRooms.savasRooms.y + 4);
+        int hazineAlan = (kat.katRooms.hazineRooms.y + 4) * (kat.katRooms.hazineRooms.y + 4);
+        if ((kat.labirentSize - 3) * (kat.labirentSize - 3) * 4 < bossAlan + savasAlan + hazineAlan)
         {
             Debug.Log("Labirent Kücük. " + Mathf.CeilToInt(Mathf.Sqrt(bossAlan + savasAlan + hazineAlan)) * 2 + " kenarlı bir yer tavsiye ediyoruz.");
         }
         // Labirent Zemini ayarla
-        labirentZemin.localScale = new Vector3(labirentBuyukluk.x * 40, 1, labirentBuyukluk.y * 40);
+        labirentZemin.localScale = new Vector3(kat.labirentSize * 40, 1, kat.labirentSize * 40);
         labirentZemin.localPosition = new Vector3(-10, 0, -15);
         // Labirent Duvarlarını ayarla
-        for (int x = -labirentBuyukluk.x; x < labirentBuyukluk.x; x++)
+        for (int x = -kat.labirentSize; x < kat.labirentSize; x++)
         {
-            for (int y = -labirentBuyukluk.y; y < labirentBuyukluk.y; y++)
+            for (int y = -kat.labirentSize; y < kat.labirentSize; y++)
             {
                 LabirentCell cell = Instantiate(labirentCell, new Vector3Int(x * 20, 0, y * 20), Quaternion.identity, transform.GetChild(1));
                 cell.name = "" + (x * 20) + "___" + (y * 20);
                 cells.Add(new Vector3Int(x * 20, 0, y * 20), cell);
-                if (x == labirentBuyukluk.x - 1)
+                if (x == kat.labirentSize - 1)
                 {
                     Transform wall = Instantiate(labirentWall, new Vector3(x * 20, 0, y * 20), Quaternion.identity, cell.transform);
                     wall.localPosition = new Vector3(10, 5, -5);
@@ -72,7 +71,7 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
                     //wall.GetChild(0).localScale = new Vector3(1, 10, 20);
                     cell.wallRight = wall.gameObject;
                 }
-                if (y == labirentBuyukluk.y - 1)
+                if (y == kat.labirentSize - 1)
                 {
                     Transform wall = Instantiate(labirentWall, new Vector3(x * 20, 0, y * 20), Quaternion.identity, cell.transform);
                     wall.localPosition = new Vector3(0, 5, 5);
@@ -80,16 +79,16 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
                     //wall.GetChild(0).localScale = new Vector3(20, 10, 1);
                     cell.wallUp = wall.gameObject;
                 }
-                if (x == -labirentBuyukluk.x && y == -labirentBuyukluk.y)
+                if (x == -kat.labirentSize && y == -kat.labirentSize)
                 {
                     cell.wallDown.SetActive(false);
                     cell.wallLeft.SetActive(false);
                 }
-                if (x < -labirentBuyukluk.x + kenarLimitler.y || x > labirentBuyukluk.x - kenarLimitler.y)
+                if (x < -kat.labirentSize + kenarLimitler.y || x > kat.labirentSize - kenarLimitler.y)
                 {
                     cell.isRoom = true;
                 }
-                if (y < -labirentBuyukluk.y + kenarLimitler.y || y > labirentBuyukluk.y - kenarLimitler.y)
+                if (y < -kat.labirentSize + kenarLimitler.y || y > kat.labirentSize - kenarLimitler.y)
                 {
                     cell.isRoom = true;
                 }
@@ -102,8 +101,8 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     }
     private Vector2Int RandomCoordinat(int odaSize)
     {
-        int rndStartX = Random.Range(-labirentBuyukluk.x + kenarLimitler.y, labirentBuyukluk.x - kenarLimitler.y - odaSize - kenarLimitler.x) * 20;
-        int rndStartY = Random.Range(-labirentBuyukluk.y + kenarLimitler.y, labirentBuyukluk.y - kenarLimitler.y - odaSize - kenarLimitler.x) * 20;
+        int rndStartX = Random.Range(-kat.labirentSize + kenarLimitler.y, kat.labirentSize - kenarLimitler.y - odaSize - kenarLimitler.x) * 20;
+        int rndStartY = Random.Range(-kat.labirentSize + kenarLimitler.y, kat.labirentSize - kenarLimitler.y - odaSize - kenarLimitler.x) * 20;
         return new Vector2Int(rndStartX, rndStartY);
     }
     private void UseCellForRoom(int roomX, int roomY, Vector2Int rndCoordinat)
@@ -150,8 +149,12 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
         // Labirent Odalarını ayarlamaya basla - İlk Boss odasını yerleştir.
         Vector2Int rndCoordinat = RandomCoordinat(bossRoom.x);
         UseCellForRoom(bossRoom.x, bossRoom.y, rndCoordinat);
-        kat.bossRooms.y = 1;
-        while (kat.bossRooms.x != kat.bossRooms.y)
+        kat.katRooms.bossRooms.y = 1;
+        if (kat.katRooms.bossRooms.x == 1)
+        {
+            SavasRoomKur();
+        }
+        while (kat.katRooms.bossRooms.x != kat.katRooms.bossRooms.y)
         {
             // Labirent Boss Odalarını ayarla
             rndCoordinat = RandomCoordinat(bossRoom.x);
@@ -169,8 +172,8 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
             if (yerBuldum)
             {
                 UseCellForRoom(bossRoom.x, bossRoom.y, rndCoordinat);
-                kat.bossRooms.y++;
-                if (kat.bossRooms.x == kat.bossRooms.y)
+                kat.katRooms.bossRooms.y++;
+                if (kat.katRooms.bossRooms.x == kat.katRooms.bossRooms.y)
                 {
                     SavasRoomKur();
                 }
@@ -187,12 +190,12 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     }
     private void BossRoomKontrol()
     {
-        if (kat.bossRooms.x != kat.bossRooms.y)
+        if (kat.katRooms.bossRooms.x != kat.katRooms.bossRooms.y)
         {
             bool bosslarKuruldu = false;
-            for (int x = -labirentBuyukluk.x + kenarLimitler.y; x < labirentBuyukluk.x - kenarLimitler.y && !bosslarKuruldu; x++)
+            for (int x = -kat.labirentSize + kenarLimitler.y; x < kat.labirentSize - kenarLimitler.y && !bosslarKuruldu; x++)
             {
-                for (int y = -labirentBuyukluk.x + kenarLimitler.y; y < labirentBuyukluk.y - kenarLimitler.y && !bosslarKuruldu; y++)
+                for (int y = -kat.labirentSize + kenarLimitler.y; y < kat.labirentSize - kenarLimitler.y && !bosslarKuruldu; y++)
                 {
                     Vector2Int rndCoordinat = new Vector2Int(x * 20, y * 20);
                     if (!cells[new Vector3Int(rndCoordinat.x, 0, rndCoordinat.y)].isRoom)
@@ -201,9 +204,9 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
                         if (yerBuldum)
                         {
                             Debug.Log("Boss icin yer buldum.");
-                            kat.bossRooms.y++;
+                            kat.katRooms.bossRooms.y++;
                             UseCellForRoom(bossRoom.x, bossRoom.y, rndCoordinat + new Vector2Int(40, 40));
-                            if (kat.bossRooms.x == kat.bossRooms.y)
+                            if (kat.katRooms.bossRooms.x == kat.katRooms.bossRooms.y)
                             {
                                 Debug.Log("Boss odaları kuruldu.");
                                 bosslarKuruldu = true;
@@ -223,7 +226,7 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     IEnumerator SavasRoomYerBulunuyor()
     {
         kurulumTime.y = 0;
-        while (kat.savasRooms.x + 1 != kat.savasRooms.y)
+        while (kat.katRooms.savasRooms.x + 1 != kat.katRooms.savasRooms.y)
         {
             // Labirent Savas Odalarını ayarla
             Vector2Int rndCoordinat = RandomCoordinat(savasRoom.x);
@@ -242,8 +245,8 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
             {
                 UseCellForRoom(savasRoom.x, savasRoom.y, rndCoordinat);
                 savasOdalar.Add(rndCoordinat + new Vector2Int(20, 20));
-                kat.savasRooms.y++;
-                if (kat.savasRooms.x + 1 == kat.savasRooms.y)
+                kat.katRooms.savasRooms.y++;
+                if (kat.katRooms.savasRooms.x + 1 == kat.katRooms.savasRooms.y)
                 {
                     HazineRoomKur();
                 }
@@ -260,12 +263,12 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     }
     private void SavasRoomKontrol()
     {
-        if (kat.savasRooms.x + 1 != kat.savasRooms.y)
+        if (kat.katRooms.savasRooms.x + 1 != kat.katRooms.savasRooms.y)
         {
             bool savaslarKuruldu = false;
-            for (int x = -labirentBuyukluk.x + kenarLimitler.y; x < labirentBuyukluk.x - kenarLimitler.y && !savaslarKuruldu; x++)
+            for (int x = -kat.labirentSize + kenarLimitler.y; x < kat.labirentSize - kenarLimitler.y && !savaslarKuruldu; x++)
             {
-                for (int y = -labirentBuyukluk.x + kenarLimitler.y; y < labirentBuyukluk.y - kenarLimitler.y && !savaslarKuruldu; y++)
+                for (int y = -kat.labirentSize + kenarLimitler.y; y < kat.labirentSize - kenarLimitler.y && !savaslarKuruldu; y++)
                 {
                     Vector2Int rndCoordinat = new Vector2Int(x * 20, y * 20);
                     if (!cells[new Vector3Int(rndCoordinat.x, 0, rndCoordinat.y)].isRoom)
@@ -274,10 +277,10 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
                         if (yerBuldum)
                         {
                             Debug.Log("Savas icin yer buldum.");
-                            kat.savasRooms.y++;
+                            kat.katRooms.savasRooms.y++;
                             UseCellForRoom(savasRoom.x, savasRoom.y, rndCoordinat + new Vector2Int(40, 40));
                             savasOdalar.Add(rndCoordinat + new Vector2Int(60, 60));
-                            if (kat.savasRooms.x + 1 == kat.savasRooms.y)
+                            if (kat.katRooms.savasRooms.x + 1 == kat.katRooms.savasRooms.y)
                             {
                                 Debug.Log("Savas odaları kuruldu.");
                                 savaslarKuruldu = true;
@@ -297,7 +300,7 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     IEnumerator HazineRoomYerBulunuyor()
     {
         kurulumTime.y = 0;
-        while (kat.hazineRooms.x != kat.hazineRooms.y)
+        while (kat.katRooms.hazineRooms.x != kat.katRooms.hazineRooms.y)
         {
             // Labirent Hazine Odalarını ayarla
             Vector2Int rndCoordinat = RandomCoordinat(hazineRoom.x);
@@ -315,8 +318,8 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
             if (yerBuldum)
             {
                 UseCellForRoom(hazineRoom.x, hazineRoom.y, rndCoordinat);
-                kat.hazineRooms.y++;
-                if (kat.hazineRooms.x == kat.hazineRooms.y)
+                kat.katRooms.hazineRooms.y++;
+                if (kat.katRooms.hazineRooms.x == kat.katRooms.hazineRooms.y)
                 {
                     // Herşey hazır
                     Debug.Log("Labirent kuruldu.");
@@ -337,12 +340,12 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     private void HazineRoomKontrol()
     {
         bool hazinelarKuruldu = true;
-        if (kat.hazineRooms.x != kat.hazineRooms.y)
+        if (kat.katRooms.hazineRooms.x != kat.katRooms.hazineRooms.y)
         {
             hazinelarKuruldu = false;
-            for (int x = -labirentBuyukluk.x + kenarLimitler.y; x < labirentBuyukluk.x - kenarLimitler.y && !hazinelarKuruldu; x++)
+            for (int x = -kat.labirentSize + kenarLimitler.y; x < kat.labirentSize - kenarLimitler.y && !hazinelarKuruldu; x++)
             {
-                for (int y = -labirentBuyukluk.x + kenarLimitler.y; y < labirentBuyukluk.y - kenarLimitler.y && !hazinelarKuruldu; y++)
+                for (int y = -kat.labirentSize + kenarLimitler.y; y < kat.labirentSize - kenarLimitler.y && !hazinelarKuruldu; y++)
                 {
                     Vector2Int rndCoordinat = new Vector2Int(x * 20, y * 20);
                     if (!cells[new Vector3Int(rndCoordinat.x, 0, rndCoordinat.y)].isRoom)
@@ -352,8 +355,8 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
                         {
                             Debug.Log("Hazine icin yer buldum.");
                             UseCellForRoom(hazineRoom.x, hazineRoom.y, rndCoordinat + new Vector2Int(40, 40));
-                            kat.hazineRooms.y++;
-                            if (kat.hazineRooms.x == kat.hazineRooms.y)
+                            kat.katRooms.hazineRooms.y++;
+                            if (kat.katRooms.hazineRooms.x == kat.katRooms.hazineRooms.y)
                             {
                                 hazinelarKuruldu = true;
                             }
@@ -379,7 +382,6 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     }
     private void LabirentKuruldu()
     {
-        labirentManager.LabirentKatPartBitti(labirentOrder);
         LabirentYolYap();
     }
     public bool YerKontrol(Vector2Int kontrolYer, int room)
@@ -527,7 +529,11 @@ public class Labirent_Kat_Part_Maker : MonoBehaviour
     private void TeleportYap()
     {
         Debug.Log("<color=cyan>Labirent teleport yapılıyor.</color>");
-        Vector2Int rndSavasOda = savasOdalar[Random.Range(0, savasOdalar.Count)];
-        Instantiate(labirentTeleporter, new Vector3(rndSavasOda.x, 00, rndSavasOda.y - 5), Quaternion.identity, transform);
+        if (savasOdalar.Count > 0)
+        {
+            Vector2Int rndSavasOda = savasOdalar[Random.Range(0, savasOdalar.Count)];
+            Instantiate(labirentTeleporter, new Vector3(rndSavasOda.x, 00, rndSavasOda.y - 5), Quaternion.identity, transform);
+        }
+        labirentManager.LabirentKatPartBitti(labirentOrder, kat.labirentSize * 40);
     }
 }

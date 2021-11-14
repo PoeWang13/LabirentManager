@@ -140,10 +140,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 757d8d0f21eb30243b19b32014469b3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  labirentManager: {fileID: 0}
   labirentZemin: {fileID: 2115478994838697262}
   labirentWall: {fileID: 4920873821064675811, guid: 83cc2f1dc770e414d9cf751f6c7e513f, type: 3}
   labirentCell: {fileID: 4380772455943191465, guid: b8c5285255877d44ebfb5111cb189b9d, type: 3}
   labirentTeleporter: {fileID: 1938533973516826915, guid: 304a79443ff6f3949b0186f69a413109, type: 3}
+  labirentOrder: 0
   labirentBuyukluk: {x: 0, y: 0}
   kenarLimitler: {x: 2, y: 3}
   hazineRoom: {x: 2, y: 2}

@@ -344,9 +344,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labirent_Kat_Part_Maker: {fileID: 2115478996748938750, guid: de23ea57a986b3f47a6910217b27d72f, type: 3}
   labirentKats:
-  - labirentSize: {x: 0, y: 0}
+  - labirentSize: 15
     katRooms:
-      bossRooms: {x: 0, y: 0}
-      savasRooms: {x: 0, y: 0}
-      hazineRooms: {x: 0, y: 0}
+      bossRooms: {x: 1, y: 0}
+      savasRooms: {x: 1, y: 0}
+      hazineRooms: {x: 1, y: 0}
+  - labirentSize: 15
+    katRooms:
+      bossRooms: {x: 1, y: 0}
+      savasRooms: {x: 1, y: 0}
+      hazineRooms: {x: 1, y: 0}
   labirent_Kat_Part_Makers: []
+  labirent_Kat_Part_Offsets:
+  - {x: 0, y: 0, z: 0}
+  - {x: 5, y: 0, z: -25}
+  - {x: -20, y: 0, z: -30}
+  - {x: -25, y: 0, z: -5}
